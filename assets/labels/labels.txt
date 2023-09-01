@@ -1,0 +1,9 @@
+plastic_bag
+plastic_bottle
+plastic_cap
+plastic_container
+plastic_wrapper
+plastic_other
+foam_container
+foam_other
+glass_bottle
