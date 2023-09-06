@@ -20,13 +20,11 @@ class RunInferenceScreen extends StatefulWidget {
 
 class _RunInferenceScreenState extends State<RunInferenceScreen> {
   late VideoPlayerController _videoPlayerController;
-
+  late ModelObjectDetection objectModel;
   List<String> prediction = [];
   bool objectDetection = false;
 
   List<Image> images = [];
-
-  late ClassificationModel classificationModel;
   @override
   void initState() {
     super.initState();
@@ -49,12 +47,21 @@ class _RunInferenceScreenState extends State<RunInferenceScreen> {
 
   Future _loadModel() async {
     try {
-      classificationModel = await PytorchLite.loadClassificationModel(
-        "assets/models/best.pt",
+      // classificationModel = await PytorchLite.loadClassificationModel(
+      //   "assets/models/best.torchscript",
+      //   640,
+      //   480,
+      //   9,
+      //   labelPath: "assets/labels/labels.txt",
+      // );
+
+      objectModel = await PytorchLite.loadObjectDetectionModel(
+        "assets/models/best.torchscript",
+        9,
         640,
         480,
-        9,
         labelPath: "assets/labels/labels.txt",
+        objectDetectionModelType: ObjectDetectionModelType.yolov5,
       );
     } catch (e) {
       print("Error is $e");
@@ -86,7 +93,7 @@ class _RunInferenceScreenState extends State<RunInferenceScreen> {
       final destinationFile = File('${tempDir.path}/$uniqueFileName');
 
       // Copy the generated thumbnail to the temporary directory
-      await File(fileName!).copy(destinationFile.path);
+      File file = await File(fileName!).copy(destinationFile.path);
 
       images.add(Image.file(File(destinationFile.path)));
       currentVideoTime += 500; // Increment the time position
@@ -96,8 +103,8 @@ class _RunInferenceScreenState extends State<RunInferenceScreen> {
       );
 
       try {
-        String imagePrediction = await classificationModel
-            .getImagePrediction(await File(fileName).readAsBytes());
+        List<ResultObjectDetection> imagePrediction =
+            await objectModel.getImagePrediction(await file.readAsBytes());
         print(imagePrediction);
       } catch (e) {
         print(e);
